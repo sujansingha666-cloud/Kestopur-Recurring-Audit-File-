@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kestopur Store Audit</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root{
+    --ink:#F4EFE4;
+    --ink-dim:#B8AF9E;
+    --ink-faint:#7C7568;
+    --slate:#1C1E1B;
+    --slate-2:#242722;
+    --slate-3:#2E322B;
+    --rail:#3A3E36;
+    --rust:#C1502E;
+    --rust-dim:#7A3620;
+    --amber:#D98E2B;
+    --amber-dim:#6E5320;
+    --green:#5A8F4F;
+    --green-dim:#33502C;
+    --paper:#F6F1E4;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--slate);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    padding:0 0 64px;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:36px 24px;}
+
+  /* Header */
+  header{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    border-bottom:2px solid var(--rail); padding-bottom:20px; margin-bottom:28px;
+    flex-wrap:wrap; gap:16px;
+  }
+  .brand-eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--rust); margin:0 0 6px;
+  }
+  h1{
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:32px;
+    letter-spacing:.01em; margin:0; color:var(--paper); text-transform:uppercase;
+  }
+  .month-nav{display:flex; align-items:center; gap:10px;}
+  .month-nav button{
+    background:var(--slate-2); border:1px solid var(--rail); color:var(--ink);
+    width:34px; height:34px; border-radius:4px; cursor:pointer; font-size:16px;
+  }
+  .month-nav button:hover{border-color:var(--rust);}
+  .month-label{
+    font-family:'JetBrains Mono',monospace; font-size:14px; min-width:150px;
+    text-align:center; color:var(--paper);
+  }
+
+  /* Summary cards */
+  .cards{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px;}
+  .card{
+    background:var(--slate-2); border:1px solid var(--rail); border-radius:6px;
+    padding:16px 18px; position:relative; overflow:hidden;
+  }
+  .card .num{font-family:'Oswald',sans-serif; font-size:30px; font-weight:600; color:var(--paper);}
+  .card .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); margin-top:4px;}
+  .card.accent-rust{border-left:3px solid var(--rust);}
+  .card.accent-amber{border-left:3px solid var(--amber);}
+  .card.accent-green{border-left:3px solid var(--green);}
+  .card.accent-plain{border-left:3px solid var(--rail);}
+
+  section{margin-bottom:36px;}
+  .tab-nav{display:flex; gap:6px; margin-bottom:24px; border-bottom:1px solid var(--rail);}
+  .tab-btn{
+    background:transparent; border:none; color:var(--ink-faint); font-family:'JetBrains Mono',monospace;
+    font-size:12px; text-transform:uppercase; letter-spacing:.06em; padding:10px 4px; margin-right:18px;
+    cursor:pointer; border-bottom:2px solid transparent;
+  }
+  .tab-btn:hover{color:var(--ink);}
+  .tab-btn.active{color:var(--paper); border-bottom-color:var(--rust);}
+  .export-row{display:flex; gap:12px; flex-wrap:wrap;}
+  .export-btn{
+    background:var(--slate-2); border:1px solid var(--rail); color:var(--paper); border-radius:6px;
+    padding:12px 18px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .export-btn:hover{border-color:var(--rust); color:var(--rust);}
+  .export-hint{font-size:11px; color:var(--ink-faint); margin-top:10px; font-family:'JetBrains Mono',monospace;}
+  .trend-row{
+    display:flex; align-items:center; gap:12px; padding:7px 0; border-bottom:1px solid var(--rail);
+  }
+  .trend-row:last-child{border-bottom:none;}
+  .trend-row .trend-lbl{width:120px; flex-shrink:0; font-size:12px; color:var(--ink);}
+  .trend-row .bar-track{flex:1; margin:0;}
+  .trend-row .trend-pct{width:44px; text-align:right; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-dim); flex-shrink:0;}
+  .marker-bar{
+    display:flex; align-items:center; gap:10px; margin-bottom:22px;
+    background:var(--slate-2); border:1px solid var(--rail); border-radius:6px;
+    padding:8px 12px; width:fit-content;
+  }
+  .marker-lbl{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); font-family:'JetBrains Mono',monospace;}
+  .marker-bar select{
+    background:var(--slate-3); color:var(--paper); border:1px solid var(--rail); border-radius:4px;
+    font-size:13px; padding:5px 8px; font-family:'Inter',sans-serif;
+  }
+  .flag-card{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:var(--slate-2); border:1px solid var(--rust); border-left:4px solid var(--rust);
+    border-radius:6px; padding:12px 16px; margin-bottom:8px;
+  }
+  .flag-card .flag-info .fname{font-size:14px; color:var(--paper); font-weight:600;}
+  .flag-card .flag-info .fmeta{font-size:12px; color:var(--ink-dim); margin-top:2px;}
+  .flag-card .fstreak{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:#F5D3C6;
+    background:var(--rust-dim); border:1px solid var(--rust); border-radius:4px; padding:4px 10px; white-space:nowrap;
+  }
+  .flags-empty{color:var(--ink-faint); font-size:13px; padding:6px 0;}
+  .log-row{
+    display:flex; align-items:baseline; gap:8px; padding:6px 0; border-bottom:1px solid var(--rail);
+    font-size:12px; flex-wrap:wrap;
+  }
+  .log-row:last-child{border-bottom:none;}
+  .log-row .log-when{font-family:'JetBrains Mono',monospace; color:var(--ink-faint); min-width:110px;}
+  .log-row .log-who{color:var(--amber); font-weight:600;}
+  .log-row .log-status.log-done{color:#9FD08F;}
+  .log-row .log-status.log-missed{color:#E79A82;}
+  .log-row .log-what{color:var(--ink-dim);}
+  .log-empty{color:var(--ink-faint); font-size:13px; padding:6px 0;}
+  .activity-scroll{max-height:320px; overflow-y:auto; padding-right:4px;}
+  .section-title{
+    font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-faint); margin:0 0 14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .section-title::after{content:""; flex:1; height:1px; background:var(--rail);}
+
+  /* Captains */
+  .captain-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:14px;}
+  .captain-card{
+    background:var(--slate-2); border:1px solid var(--rail); border-radius:6px; padding:16px;
+  }
+  .captain-card .name-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .captain-card .name{font-family:'Oswald',sans-serif; font-size:18px; color:var(--paper); text-transform:uppercase;}
+  .captain-card .pct{font-family:'JetBrains Mono',monospace; font-size:20px;}
+  .bar-track{height:6px; background:var(--slate-3); border-radius:3px; overflow:hidden; margin-bottom:8px;}
+  .bar-fill{height:100%; border-radius:3px;}
+  .captain-card .meta{font-size:11px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace;}
+  .captain-rename{
+    background:transparent; border:none; border-bottom:1px dashed var(--rail); color:var(--paper);
+    font-family:'Oswald',sans-serif; font-size:18px; text-transform:uppercase; flex:1; min-width:0;
+    padding:2px 0; margin-bottom:0;
+  }
+  .captain-rename:focus{outline:none; border-bottom-color:var(--rust);}
+  .remove-captain-btn{
+    background:transparent; border:1px solid var(--rail); color:var(--ink-faint);
+    min-width:22px; height:22px; padding:0 6px; border-radius:4px; cursor:pointer; font-size:11px;
+    flex-shrink:0; margin-left:8px; font-family:'JetBrains Mono',monospace; white-space:nowrap;
+  }
+  .remove-captain-btn:hover{border-color:var(--rust); color:var(--rust);}
+  .remove-captain-btn.confirming{background:var(--rust-dim); border-color:var(--rust); color:#F5D3C6;}
+  .remove-captain-btn:disabled{opacity:.35; cursor:not-allowed;}
+  .remove-captain-btn:disabled:hover{border-color:var(--rail); color:var(--ink-faint);}
+  .add-captain-card{
+    background:transparent; border:1px dashed var(--rail); border-radius:6px; padding:16px;
+    color:var(--ink-faint); cursor:pointer; font-family:'Inter',sans-serif; font-size:13px;
+    min-height:96px; display:flex; align-items:center; justify-content:center;
+  }
+  .add-captain-card:hover{border-color:var(--rust); color:var(--rust);}
+
+  /* Task breakdown */
+  .task-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:8px 0; border-bottom:1px solid var(--rail);
+  }
+  .task-row:last-child{border-bottom:none;}
+  .task-rename{
+    flex:1 1 160px; min-width:120px; background:transparent; border:none;
+    border-bottom:1px dashed var(--rail); color:var(--ink); font-size:13px;
+    font-family:'Inter',sans-serif; padding:3px 0;
+  }
+  .task-rename:focus{outline:none; border-bottom-color:var(--rust);}
+  .task-row .bar-track{flex:1 1 100px; min-width:80px; margin:0;}
+  .task-row .tpct{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-dim); width:38px; text-align:right; flex-shrink:0;}
+  .task-row select{
+    background:var(--slate-3); color:var(--ink); border:1px solid var(--rail); border-radius:4px;
+    font-size:11px; padding:3px 4px; font-family:'JetBrains Mono',monospace; flex-shrink:0;
+  }
+  .add-task-form{
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:14px 0 4px;
+  }
+  .add-task-form input{
+    background:var(--slate-3); border:1px solid var(--rail); color:var(--ink); border-radius:4px;
+    padding:7px 10px; font-size:12px; font-family:'Inter',sans-serif;
+  }
+  .add-task-form input#newTaskName{flex:2 1 200px;}
+  .add-task-form input#newTaskDays{flex:1 1 160px;}
+  .add-task-form button{
+    background:var(--rust-dim); border:1px solid var(--rust); color:#F5D3C6; border-radius:4px;
+    padding:7px 14px; font-size:12px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .add-task-form button:hover{background:var(--rust);}
+  .add-task-hint{font-size:11px; color:var(--ink-faint); margin:4px 0 0; font-family:'JetBrains Mono',monospace;}
+  .sop-edit{
+    margin:-4px 0 14px; padding:12px; background:var(--slate-2); border:1px dashed var(--rail); border-radius:6px;
+  }
+  .sop-locked-btn{
+    background:none; border:none; color:var(--amber); cursor:pointer; font-family:'JetBrains Mono',monospace;
+    font-size:11px; padding:0 0 14px 4px; text-align:left;
+  }
+  .sop-locked-btn:hover{color:var(--rust);}
+  .sop-collapse-btn{
+    background:none; border:none; color:var(--ink-faint); cursor:pointer; font-family:'JetBrains Mono',monospace;
+    font-size:11px; padding:0 0 8px; display:block;
+  }
+  .sop-collapse-btn:hover{color:var(--ink);}
+  .sop-edit textarea{
+    width:100%; min-height:80px; background:var(--slate-3); border:1px solid var(--rail);
+    color:var(--ink); border-radius:4px; padding:10px; font-size:12px; font-family:'Inter',sans-serif; resize:vertical;
+  }
+  .sop-photo-row{margin-top:12px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .sop-photo-row input[type="file"]{
+    font-size:11px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace;
+  }
+  .sop-photo-preview{display:flex; align-items:center; gap:10px;}
+  .sop-photo-preview img{width:70px; height:70px; object-fit:cover; border-radius:4px; border:1px solid var(--rail);}
+  .sop-photo-preview button{
+    background:none; border:1px solid var(--rail); color:var(--ink-faint); border-radius:4px;
+    padding:5px 10px; cursor:pointer; font-size:11px; font-family:'JetBrains Mono',monospace;
+  }
+  .sop-photo-preview button:hover{border-color:var(--rust); color:var(--rust);}
+  .sop-view{margin-top:2px;}
+  .sop-view summary{
+    font-size:11px; color:var(--amber); cursor:pointer; font-family:'JetBrains Mono',monospace; list-style:none;
+  }
+  .sop-view summary::-webkit-details-marker{display:none;}
+  .sop-view p{
+    font-size:12px; color:var(--ink); line-height:1.6; margin:6px 0 0;
+    background:var(--slate-3); border-radius:4px; padding:10px; white-space:normal;
+  }
+  .sop-photo-view-img{
+    display:block; max-width:100%; border-radius:6px; margin-top:8px; border:1px solid var(--rail);
+  }
+
+  /* Ticket rail */
+  .ticket-group{margin-bottom:18px;}
+  .ticket-date{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--amber);
+    letter-spacing:.06em; margin-bottom:8px; display:flex; align-items:center; gap:8px;
+  }
+  .ticket-date .tag{
+    font-size:10px; padding:1px 6px; border-radius:3px; background:var(--rust-dim); color:var(--paper);
+    text-transform:uppercase;
+  }
+  .ticket{
+    background:var(--slate-2); border:1px solid var(--rail); border-left:3px solid var(--rail);
+    border-radius:4px; padding:12px 14px; margin-bottom:8px;
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .ticket.status-done{border-left-color:var(--green); opacity:.72;}
+  .ticket.status-missed{border-left-color:var(--rust);}
+  .ticket.status-overdue{border-left-color:var(--amber);}
+  .ticket-info{display:flex; flex-direction:column; gap:2px; min-width:220px;}
+  .ticket-info .tname{font-size:14px; color:var(--paper); font-weight:500;}
+  .ticket-info .tcaptain{font-size:11px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace;}
+  .ticket-actions{display:flex; gap:6px; align-items:center;}
+  .status-btn{
+    font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase;
+    padding:6px 10px; border-radius:4px; border:1px solid var(--rail); background:transparent;
+    color:var(--ink-dim); cursor:pointer; letter-spacing:.04em;
+  }
+  .status-btn:hover{border-color:var(--ink-dim);}
+  .status-btn.active-done{background:var(--green-dim); border-color:var(--green); color:#CFE8C6;}
+  .status-btn.active-missed{background:var(--rust-dim); border-color:var(--rust); color:#F5D3C6;}
+  .status-btn.active-pending{background:var(--slate-3); border-color:var(--ink-faint); color:var(--ink);}
+
+  .empty{color:var(--ink-faint); font-size:13px; padding:20px 0; text-align:center;}
+  .footer-note{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-faint);
+    text-align:center; margin-top:40px; line-height:1.8;
+  }
+  .footer-note button{
+    background:none; border:1px solid var(--rail); color:var(--ink-faint); border-radius:4px;
+    padding:6px 12px; cursor:pointer; font-family:'JetBrains Mono',monospace; font-size:11px; margin-top:8px;
+  }
+  .footer-note button:hover{border-color:var(--rust); color:var(--rust);}
+  .reset-zone{margin-top:16px;}
+  .pin-box{
+    display:flex; gap:6px; justify-content:center; align-items:center; flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .pin-box input{
+    background:var(--slate-2); border:1px solid var(--rail); color:var(--ink); border-radius:4px;
+    padding:6px 10px; font-size:12px; font-family:'JetBrains Mono',monospace; width:130px; text-align:center;
+  }
+  .pin-box button{
+    background:none; border:1px solid var(--rail); color:var(--ink-faint); border-radius:4px;
+    padding:6px 12px; cursor:pointer; font-family:'JetBrains Mono',monospace; font-size:11px;
+  }
+  .pin-box button:hover{border-color:var(--rust); color:var(--rust);}
+  .pin-error{color:var(--rust); font-size:11px; margin-top:6px; min-height:14px;}
+  .link-btn{
+    background:none; border:none; color:var(--ink-faint); text-decoration:underline; cursor:pointer;
+    font-family:'JetBrains Mono',monospace; font-size:11px; margin-top:10px; padding:0;
+  }
+  .link-btn:hover{color:var(--rust);}
+  .lock-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:100;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .lock-box{
+    background:var(--slate-2); border:1px solid var(--rail); border-radius:8px;
+    padding:28px; max-width:320px; width:100%; text-align:center;
+  }
+  .lock-title{font-family:'Oswald',sans-serif; font-size:20px; color:var(--paper); text-transform:uppercase; margin:0 0 6px;}
+  .lock-sub{font-size:12px; color:var(--ink-faint); margin:0 0 16px; line-height:1.5;}
+  .lock-box input{
+    width:100%; background:var(--slate-3); border:1px solid var(--rail); color:var(--ink);
+    border-radius:4px; padding:10px; font-size:14px; text-align:center;
+    font-family:'JetBrains Mono',monospace; margin-bottom:10px;
+  }
+  .lock-actions{display:flex; gap:8px; justify-content:center;}
+  .lock-actions button{
+    background:var(--rust-dim); border:1px solid var(--rust); color:#F5D3C6; border-radius:4px;
+    padding:8px 18px; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px;
+  }
+  .lock-actions button:last-child{background:transparent; border-color:var(--rail); color:var(--ink-faint);}
+  .lock-actions button:hover{opacity:.85;}
+
+  @media(max-width:640px){
+    .cards{grid-template-columns:repeat(2,1fr);}
+    .captain-grid{grid-template-columns:repeat(auto-fill, minmax(140px,1fr));}
+    .task-row{gap:6px;}
+    .task-row .tpct{text-align:left;}
+  }
+
+  /* Today checklist */
+  .today-item{
+    background:var(--slate-2); border:1px solid var(--rail); border-left:4px solid var(--rail);
+    border-radius:6px; padding:16px; margin-bottom:10px;
+  }
+  .today-item.status-done{border-left-color:var(--green);}
+  .today-item.status-missed{border-left-color:var(--rust);}
+  .today-item.status-overdue{border-left-color:var(--amber);}
+  .today-item .tiname{font-size:16px; color:var(--paper); font-weight:600; margin-bottom:4px;}
+  .today-item .ticap{font-size:12px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace; margin-bottom:10px;}
+  .today-item .ticket-actions{display:flex; gap:8px;}
+  .today-item .status-btn{flex:1; padding:12px 8px; text-align:center;}
+  .today-empty{color:var(--ink-faint); font-size:14px; text-align:center; padding:30px 0;}
+  .today-date-hdr{font-family:'Oswald',sans-serif; font-size:20px; color:var(--paper); text-transform:uppercase; margin-bottom:16px;}
+
+  /* View toggle */
+  .view-toggle{display:flex; gap:6px; margin-bottom:14px;}
+  .view-toggle button{
+    background:var(--slate-2); border:1px solid var(--rail); color:var(--ink-dim); border-radius:4px;
+    padding:6px 12px; font-size:11px; text-transform:uppercase; letter-spacing:.05em; cursor:pointer;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .view-toggle button.active{background:var(--rust-dim); border-color:var(--rust); color:#F5D3C6;}
+
+  /* Calendar grid */
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
+  .cal-dow{font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-faint); text-align:center; padding-bottom:4px; text-transform:uppercase;}
+  .cal-cell{
+    background:var(--slate-2); border:1px solid var(--rail); border-radius:5px; min-height:64px;
+    padding:6px; cursor:pointer; display:flex; flex-direction:column; gap:4px;
+  }
+  .cal-cell:hover{border-color:var(--ink-faint);}
+  .cal-cell.cal-empty{background:transparent; border-color:transparent; cursor:default;}
+  .cal-cell.cal-today{border-color:var(--rust);}
+  .cal-cell.cal-selected{border-color:var(--amber); background:var(--slate-3);}
+  .cal-daynum{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-dim);}
+  .cal-dots{display:flex; flex-wrap:wrap; gap:3px;}
+  .cal-dot{width:7px; height:7px; border-radius:50%; flex-shrink:0;}
+  .cal-dot.dot-done{background:var(--green);}
+  .cal-dot.dot-missed{background:var(--rust);}
+  .cal-dot.dot-overdue{background:var(--amber);}
+  .cal-dot.dot-pending{background:var(--rail);}
+  .cal-day-detail{margin-top:20px;}
+  .cal-day-detail-hdr{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--amber); margin-bottom:10px;}
+
+  /* Digest */
+  .digest-controls{display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap;}
+  .digest-controls button{
+    background:var(--slate-2); border:1px solid var(--rail); color:var(--paper); border-radius:6px;
+    padding:10px 16px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .digest-controls button:hover{border-color:var(--amber); color:var(--amber);}
+  #digestOutput{
+    width:100%; min-height:180px; background:var(--slate-2); border:1px solid var(--rail); color:var(--ink);
+    border-radius:6px; padding:14px; font-family:'JetBrains Mono',monospace; font-size:12px;
+    white-space:pre-wrap; resize:vertical;
+  }
+  .digest-hint{font-size:11px; color:var(--ink-faint); margin-top:8px; font-family:'JetBrains Mono',monospace;}
+
+  /* SLA target + priority */
+  .sla-input{
+    width:48px; background:var(--slate-3); border:1px solid var(--rail); color:var(--ink);
+    border-radius:4px; font-size:11px; padding:2px 4px; font-family:'JetBrains Mono',monospace; text-align:center;
+  }
+  .task-row .prio-select{
+    background:var(--slate-3); color:var(--ink); border:1px solid var(--rail); border-radius:4px;
+    font-size:11px; padding:3px 4px; font-family:'JetBrains Mono',monospace; flex-shrink:0;
+  }
+  .task-row .days-input{
+    width:110px; flex-shrink:0; background:var(--slate-3); border:1px solid var(--rail); color:var(--ink);
+    border-radius:4px; font-size:11px; padding:4px 6px; font-family:'JetBrains Mono',monospace;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="brand-eyebrow">Kestopur · operations line</p>
+      <h1>Kestopur Store Audit</h1>
+    </div>
+    <div class="month-nav">
+      <button onclick="shiftMonth(-1)">‹</button>
+      <span class="month-label" id="monthLabel">—</span>
+      <button onclick="shiftMonth(1)">›</button>
+    </div>
+  </header>
+
+  <div class="tab-nav">
+    <button class="tab-btn" id="tabBtnBoard" onclick="switchTab('board')">🔒 Audit board</button>
+    <button class="tab-btn active" id="tabBtnToday" onclick="switchTab('today')">Today</button>
+    <button class="tab-btn" id="tabBtnInsights" onclick="switchTab('insights')">🔒 Insights &amp; reports</button>
+  </div>
+
+  <div id="tabToday">
+    <p class="today-date-hdr" id="todayDateHdr">—</p>
+    <div id="todayChecklist"></div>
+  </div>
+
+  <div id="tabBoard" style="display:none;">
+
+    <div class="marker-bar">
+      <span class="marker-lbl">Marking as</span>
+      <select id="markerSelect" onchange="setCurrentMarker(this.value)"></select>
+    </div>
+
+    <div class="cards" id="summaryCards"></div>
+
+    <section>
+      <p class="section-title">Captains</p>
+      <div class="captain-grid" id="captainGrid"></div>
+    </section>
+
+    <section>
+      <p class="section-title">Task completion this month</p>
+      <div id="taskBreakdown"></div>
+    </section>
+
+    <section>
+      <p class="section-title">Audit rail — mark each ticket as it's completed</p>
+      <div class="view-toggle">
+        <button id="viewBtnList" class="active" onclick="setTicketView('list')">List</button>
+        <button id="viewBtnCal" onclick="setTicketView('calendar')">Calendar</button>
+      </div>
+      <div id="ticketRail"></div>
+      <div id="calendarWrap" style="display:none;">
+        <div class="cal-grid" id="calendarGrid"></div>
+        <div class="cal-day-detail" id="calendarDayDetail"></div>
+      </div>
+    </section>
+
+    <section>
+      <p class="section-title">Activity log</p>
+      <div id="activityLog"></div>
+    </section>
+
+  </div>
+
+  <div id="tabInsights" style="display:none;">
+
+    <section id="flagsSection">
+      <p class="section-title">Needs attention</p>
+      <div id="flagsList"></div>
+    </section>
+
+    <section>
+      <p class="section-title">Completion rate — last 6 months</p>
+      <div id="trendOverall"></div>
+    </section>
+
+    <section>
+      <p class="section-title">Task-wise average — last 6 months</p>
+      <div id="trendByTask"></div>
+    </section>
+
+    <section>
+      <p class="section-title">Digest — copy/paste for WhatsApp or Slack</p>
+      <div class="digest-controls">
+        <button onclick="generateDigest('today')">Generate today's digest</button>
+        <button onclick="generateDigest('month')">Generate this month's digest</button>
+        <button onclick="copyDigest()">Copy</button>
+      </div>
+      <textarea id="digestOutput" readonly placeholder="Click a button above to generate a shareable summary..."></textarea>
+      <p class="digest-hint" id="digestStatus"></p>
+    </section>
+
+    <section>
+      <p class="section-title">Export</p>
+      <div class="export-row">
+        <button class="export-btn" onclick="exportCSV()">Export this month — CSV</button>
+        <button class="export-btn" onclick="exportPDF()">Export this month — PDF</button>
+      </div>
+      <p class="export-hint" id="exportStatus"></p>
+    </section>
+
+  </div>
+
+  <div class="footer-note">
+    Shared board — anyone who opens this page sees and edits the same audit data.<br>
+    Captain names A–J are placeholders — click a name above to rename.
+    <div class="reset-zone">
+      <button id="resetBtn" onclick="startResetFlow()">Reset all audit data</button>
+      <div id="resetPinBox" class="pin-box" style="display:none;">
+        <input type="password" id="resetPinInput" placeholder="Enter PIN" inputmode="numeric">
+        <button onclick="confirmResetWithPin()">Confirm reset</button>
+        <button onclick="cancelResetFlow()">Cancel</button>
+      </div>
+      <p id="resetPinError" class="pin-error" style="display:none;">Incorrect PIN.</p>
+
+      <button id="changePinBtn" class="link-btn" onclick="toggleChangePin()">Change reset PIN</button>
+      <div id="changePinBox" class="pin-box" style="display:none;">
+        <input type="password" id="oldPinInput" placeholder="Current PIN" inputmode="numeric">
+        <input type="password" id="newPinInput" placeholder="New PIN (min 4 digits)" inputmode="numeric">
+        <button onclick="saveNewPin()">Save PIN</button>
+      </div>
+      <p id="pinChangeStatus" class="pin-error"></p>
+    </div>
+  </div>
+
+</div>
+
+<div id="lockOverlay" class="lock-overlay" style="display:none;">
+  <div class="lock-box">
+    <p class="lock-title">🔒 Enter PIN</p>
+    <p class="lock-sub">This page is protected — enter the reset PIN to continue.</p>
+    <input type="password" id="lockPinInput" placeholder="PIN" inputmode="numeric" autofocus>
+    <p id="lockPinError" class="pin-error" style="display:none;">Incorrect PIN.</p>
+    <div class="lock-actions">
+      <button onclick="confirmLockPin()">Unlock</button>
+      <button onclick="cancelLock()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   STORAGE BACKEND — GitHub Gist
+   This replaces Claude's built-in artifact storage so the page
+   works standalone, for anyone, with no login needed.
+   ------------------------------------------------------------
+   SETUP: paste your Gist ID and a Personal Access Token below.
+   See setup instructions from Claude for how to create both.
+   IMPORTANT: create a token scoped ONLY to "gist" access — not
+   full account access — since this token will be visible to
+   anyone who views this file's source.
+   ============================================================ */
+const GIST_ID = 'cfc5c87cb49d528d4eff63f5d9fae825';
+const GITHUB_TOKEN = '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';
+const GIST_FILENAME = 'store.json';
+const GIST_API = 'https://api.github.com/gists/' + GIST_ID;
+
+let _remoteStore = null; // whole key-value store, cached after first load to save API requests
+
+async function _loadRemoteStore(){
+  if(_remoteStore) return _remoteStore;
+  try{
+    const res = await fetch(GIST_API, {
+      headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github+json' }
+    });
+    const data = await res.json();
+    const content = (data.files && data.files[GIST_FILENAME]) ? data.files[GIST_FILENAME].content : '{}';
+    _remoteStore = JSON.parse(content || '{}');
+  }catch(e){
+    _remoteStore = {};
+  }
+  return _remoteStore;
+}
+
+async function _saveRemoteStore(){
+  try{
+    await fetch(GIST_API, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': 'token ' + GITHUB_TOKEN,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(_remoteStore) } } })
+    });
+  }catch(e){ console.error('gist save failed', e); }
+}
+
+window.storage = {
+  async get(key){
+    const store = await _loadRemoteStore();
+    if(!(key in store)) return null;
+    return { key, value: store[key], shared: true };
+  },
+  async set(key, value){
+    const store = await _loadRemoteStore();
+    store[key] = value;
+    await _saveRemoteStore();
+    return { key, value, shared: true };
+  },
+  async delete(key){
+    const store = await _loadRemoteStore();
+    delete store[key];
+    await _saveRemoteStore();
+    return { key, deleted: true, shared: true };
+  },
+  async list(prefix){
+    const store = await _loadRemoteStore();
+    const keys = Object.keys(store).filter(k => k.indexOf(prefix || '') === 0);
+    return { keys, prefix, shared: true };
+  }
+};
+
+if(GIST_ID.indexOf('PASTE_YOUR') === 0){
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.innerHTML = `<div style="padding:40px;font-family:sans-serif;max-width:500px;margin:0 auto;line-height:1.6;">
+      <h2>Setup needed</h2>
+      <p>This file's storage backend isn't configured yet. Open this .html file in a text editor,
+      find <code>GIST_ID</code> and <code>GITHUB_TOKEN</code> near the top of the script, and paste in
+      your Gist ID and Personal Access Token.</p>
+    </div>`;
+  });
+}
+/* ============================================================
+   END STORAGE BACKEND
+   ============================================================ */
+const DEFAULT_TASKS = [
+  { id:'stock_closing',   name:'Stock closing',                type:'fixed', days:['10','20','end'], priority:2, sop:'' },
+  { id:'store_cleaning',  name:'Store cleaning',                type:'fixed', days:[2,12,22], priority:1, sop:'' },
+  { id:'purchase',        name:'Purchase',                      type:'fixed', days:[3,13,23], priority:2, sop:'' },
+  { id:'journaling',      name:'Journaling (inv/expense/cash)', type:'fixed', days:[4,9,14,19,24,'end'], priority:2, sop:'' },
+  { id:'inv_analysis',    name:'Inventory analysis meeting',    type:'fixed', days:[1,11,21], priority:1, sop:'' },
+  { id:'sales_analysis',  name:'Sales analysis meeting',        type:'fixed', days:[1,11,21], priority:1, sop:'' },
+  { id:'expense_analysis',name:'Expense analysis meeting',      type:'fixed', days:[1,11,21], priority:1, sop:'' },
+  { id:'duty_roster',     name:'Duty roster',                   type:'fixed', days:['10','20','end'], priority:1, sop:'' },
+  { id:'captain_perf',    name:'Captain performance meeting',   type:'fixed', days:[1,16], priority:1, sop:'' },
+  { id:'pl_report',       name:'Monthly P/L report meeting',    type:'flex',  days:[5], priority:1, sop:'' },
+];
+
+function slugify(name){
+  return name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'') || 'task';
+}
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function uniqueTaskId(base, list){
+  let id = base, i = 1;
+  while(list.some(t => t.id === id)){ id = base + '_' + i; i++; }
+  return id;
+}
+
+const ALL_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+
+// One captain per task by default (10 tasks, 10 captains)
+const DEFAULT_CAPTAINS = { stock_closing:'A', store_cleaning:'B', purchase:'C', journaling:'D',
+  inv_analysis:'E', sales_analysis:'F', expense_analysis:'G', duty_roster:'H',
+  captain_perf:'I', pl_report:'J' };
+const DEFAULT_ROSTER = ['A','B','C','D','E','F','G','H','I','J'];
+
+function defaultCaptainNames(roster){
+  const obj = {};
+  roster.forEach(c => obj[c] = 'Captain ' + c);
+  return obj;
+}
+
+function nextCaptainId(roster){
+  const free = ALL_LETTERS.find(l => !roster.includes(l));
+  return free || ('C' + (roster.length + 1)); // fallback past Z
+}
+
+let auditLog = {};        // { "YYYY-MM-DD:taskId": {status, byId, byName, at} }
+let assignments = {};     // { taskId: "A" }
+let taskList = [...DEFAULT_TASKS];
+let captainRoster = [...DEFAULT_ROSTER];
+let captainNames = defaultCaptainNames(captainRoster);
+let changeLog = [];       // [{key, taskId, taskName, date, status, byId, byName, at}]
+let currentMarker = null; // captain id currently marking tickets (this device)
+let captainTargets = {};  // { captainId: targetPct }
+const DEFAULT_SLA_TARGET = 85;
+let resetPin = '1234';    // PIN required to reset all audit data
+let sopPhotos = {};       // { taskId: dataUrl } — guidance photo per task
+let sopOpen = new Set();  // taskIds whose SOP editor is currently expanded (Board tab, PIN-gated)
+let pendingAction = null; // callback to run after PIN confirm (used for SOP edit unlock)
+let pendingIsSop = false; // true when the current PIN prompt is for a SOP edit (never grants session unlock)
+let ticketViewMode = 'list'; // 'list' | 'calendar'
+let selectedCalendarDate = null;
+const MISS_STREAK_THRESHOLD = 3;
+let pendingDeleteKey = null;   // e.g. 'captain:H' or 'task:stock_closing'
+let pendingDeleteTimer = null;
+
+function armOrConfirm(key, onConfirm){
+  if(pendingDeleteKey !== key){
+    pendingDeleteKey = key;
+    if(pendingDeleteTimer) clearTimeout(pendingDeleteTimer);
+    pendingDeleteTimer = setTimeout(()=>{ pendingDeleteKey = null; render(); }, 4000);
+    render();
+    return;
+  }
+  if(pendingDeleteTimer) clearTimeout(pendingDeleteTimer);
+  pendingDeleteKey = null;
+  onConfirm();
+}
+
+let viewDate = new Date();
+viewDate.setDate(1);
+
+function lastDayOfMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
+
+function occurrencesForMonth(y, m){
+  const last = lastDayOfMonth(y, m);
+  const list = [];
+  taskList.forEach(t=>{
+    t.days.forEach(d=>{
+      let day = d === 'end' ? last : d;
+      if(day > last) day = last;
+      const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      list.push({ taskId:t.id, taskName:t.name, date:dateStr, flex:t.type==='flex' });
+    });
+  });
+  list.sort((a,b)=> a.date.localeCompare(b.date));
+  return list;
+}
+
+function occurrencesForTaskAcrossMonths(taskId, monthsBack){
+  const task = taskList.find(t => t.id === taskId);
+  if(!task) return [];
+  const dates = [];
+  const d = new Date();
+  d.setDate(1);
+  for(let i=0; i<=monthsBack; i++){
+    const y = d.getFullYear(), m = d.getMonth();
+    const last = lastDayOfMonth(y, m);
+    task.days.forEach(dd=>{
+      let day = dd === 'end' ? last : dd;
+      if(day > last) day = last;
+      dates.push(`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`);
+    });
+    d.setMonth(d.getMonth() - 1);
+  }
+  return dates.sort();
+}
+
+function computeFlags(){
+  const today = todayStr();
+  const flags = [];
+  taskList.forEach(t=>{
+    const dates = occurrencesForTaskAcrossMonths(t.id, 4).filter(d => d <= today);
+    let streak = 0;
+    for(let i = dates.length - 1; i >= 0; i--){
+      const d = dates[i];
+      const key = `${d}:${t.id}`;
+      const status = getStatus(key);
+      if(d === today){
+        if(status === 'missed'){ streak++; continue; }
+        if(status === 'done'){ break; }
+        continue; // today, still pending — not overdue yet
+      }
+      if(status === 'done') break;
+      streak++; // 'missed' or 'pending' (i.e. overdue) both count
+    }
+    if(streak >= MISS_STREAK_THRESHOLD){
+      const cap = assignments[t.id] || captainRoster[0];
+      flags.push({
+        taskId: t.id, taskName: t.name, streak,
+        captainId: cap, captainName: captainNames[cap] || ('Captain ' + cap)
+      });
+    }
+  });
+  return flags;
+}
+
+let adminUnlocked = false; // unlocked for this browser session once correct PIN entered
+let pendingTab = null;
+const LOCKED_TABS = ['board', 'insights'];
+
+function switchTab(tab){
+  if(LOCKED_TABS.includes(tab) && !adminUnlocked){
+    pendingTab = tab;
+    pendingAction = null;
+    document.getElementById('lockOverlay').style.display = 'flex';
+    document.getElementById('lockPinError').style.display = 'none';
+    const inp = document.getElementById('lockPinInput');
+    if(inp){ inp.value = ''; inp.focus(); }
+    return;
+  }
+  actuallySwitchTab(tab);
+}
+
+function requireUnlock(actionFn){
+  if(adminUnlocked){ actionFn(); return; }
+  pendingAction = actionFn;
+  pendingTab = null;
+  pendingIsSop = false;
+  document.getElementById('lockOverlay').style.display = 'flex';
+  document.getElementById('lockPinError').style.display = 'none';
+  const inp = document.getElementById('lockPinInput');
+  if(inp){ inp.value = ''; inp.focus(); }
+}
+
+function requireSopPin(actionFn){
+  // SOP edits always re-prompt for the PIN, even if the tabs are already unlocked this session.
+  pendingAction = actionFn;
+  pendingTab = null;
+  pendingIsSop = true;
+  document.getElementById('lockOverlay').style.display = 'flex';
+  document.getElementById('lockPinError').style.display = 'none';
+  const inp = document.getElementById('lockPinInput');
+  if(inp){ inp.value = ''; inp.focus(); }
+}
+
+function actuallySwitchTab(tab){
+  const panels = { board: document.getElementById('tabBoard'), today: document.getElementById('tabToday'), insights: document.getElementById('tabInsights') };
+  const btns = { board: document.getElementById('tabBtnBoard'), today: document.getElementById('tabBtnToday'), insights: document.getElementById('tabBtnInsights') };
+  Object.keys(panels).forEach(key=>{
+    panels[key].style.display = (key === tab) ? '' : 'none';
+    btns[key].classList.toggle('active', key === tab);
+  });
+  render();
+}
+
+function confirmLockPin(){
+  const inp = document.getElementById('lockPinInput');
+  const val = inp ? inp.value : '';
+  if(val === resetPin){
+    if(!pendingIsSop) adminUnlocked = true; // SOP unlocks are one-time only, never grant session-wide access
+    document.getElementById('lockOverlay').style.display = 'none';
+    const t = pendingTab, fn = pendingAction;
+    pendingTab = null;
+    pendingAction = null;
+    pendingIsSop = false;
+    if(fn) fn();
+    else if(t) actuallySwitchTab(t);
+  } else {
+    document.getElementById('lockPinError').style.display = 'block';
+    if(inp){ inp.value = ''; inp.focus(); }
+  }
+}
+
+function cancelLock(){
+  document.getElementById('lockOverlay').style.display = 'none';
+  pendingTab = null;
+  pendingAction = null;
+  pendingIsSop = false;
+}
+
+function computeMonthlyTrend(monthsBack){
+  const today = todayStr();
+  const months = [];
+  const d = new Date();
+  d.setDate(1);
+  for(let i=0; i<monthsBack; i++){
+    months.unshift({ y: d.getFullYear(), m: d.getMonth() });
+    d.setMonth(d.getMonth() - 1);
+  }
+  return months.map(({y,m})=>{
+    const occ = occurrencesForMonth(y, m).filter(o => o.date <= today);
+    const total = occ.length;
+    const done = occ.filter(o => getStatus(`${o.date}:${o.taskId}`) === 'done').length;
+    const rate = total ? Math.round((done/total)*100) : null;
+    const label = new Date(y, m, 1).toLocaleString('en-US',{month:'short', year:'2-digit'});
+    return { label, rate, total, done };
+  });
+}
+
+function computeTaskTrend(monthsBack){
+  const today = todayStr();
+  const totals = {};
+  taskList.forEach(t => totals[t.id] = { name:t.name, total:0, done:0 });
+  const d = new Date();
+  d.setDate(1);
+  for(let i=0; i<monthsBack; i++){
+    const occ = occurrencesForMonth(d.getFullYear(), d.getMonth()).filter(o => o.date <= today);
+    occ.forEach(o=>{
+      if(!totals[o.taskId]) totals[o.taskId] = { name:o.taskName, total:0, done:0 };
+      totals[o.taskId].total++;
+      if(getStatus(`${o.date}:${o.taskId}`) === 'done') totals[o.taskId].done++;
+    });
+    d.setMonth(d.getMonth() - 1);
+  }
+  return Object.values(totals);
+}
+
+function setTicketView(mode){
+  ticketViewMode = mode;
+  selectedCalendarDate = null;
+  document.getElementById('viewBtnList').classList.toggle('active', mode==='list');
+  document.getElementById('viewBtnCal').classList.toggle('active', mode==='calendar');
+  document.getElementById('ticketRail').style.display = mode==='list' ? '' : 'none';
+  document.getElementById('calendarWrap').style.display = mode==='calendar' ? '' : 'none';
+  render();
+}
+
+function selectCalendarDate(dateStr){
+  selectedCalendarDate = (selectedCalendarDate === dateStr) ? null : dateStr;
+  render();
+}
+
+function renderSopViewBlock(taskId, sop){
+  const photo = sopPhotos[taskId];
+  if(!sop && !photo){
+    return `<details class="sop-view"><summary>No instructions added yet</summary></details>`;
+  }
+  return `
+    <details class="sop-view">
+      <summary>View instructions</summary>
+      ${sop ? `<p>${escapeHtml(sop).replace(/\n/g,'<br>')}</p>` : ''}
+      ${photo ? `<img class="sop-photo-view-img" src="${photo}" alt="SOP guidance photo">` : ''}
+    </details>`;
+}
+
+function buildTicketHtml(o, showDateTag){
+  const cap = assignments[o.taskId] || captainRoster[0];
+  const entry = getEntry(o.key);
+  const task = taskList.find(t => t.id === o.taskId);
+  const sop = task ? task.sop : '';
+  return `
+    <div class="ticket status-${o.display}">
+      <div class="ticket-info">
+        <span class="tname">${o.taskName}${o.flex ? ' (due by 5th)' : ''}</span>
+        <span class="tcaptain">${captainNames[cap]||('Captain '+cap)}</span>
+        ${entry ? `<span class="tcaptain">marked ${entry.status} by ${entry.byName} · ${formatWhen(entry.at)}</span>` : ''}
+        ${renderSopViewBlock(o.taskId, sop)}
+      </div>
+      <div class="ticket-actions">
+        <button class="status-btn ${o.status==='pending'?'active-pending':''}" onclick="setStatus('${o.key}','pending')">Pending</button>
+        <button class="status-btn ${o.status==='done'?'active-done':''}" onclick="setStatus('${o.key}','done')">Done</button>
+        <button class="status-btn ${o.status==='missed'?'active-missed':''}" onclick="setStatus('${o.key}','missed')">Missed</button>
+      </div>
+    </div>`;
+}
+
+function generateDigest(scope){
+  const today = todayStr();
+  let text = '';
+  if(scope === 'today'){
+    const y = new Date().getFullYear(), m = new Date().getMonth();
+    const occ = occurrencesForMonth(y, m).filter(o => o.date === today);
+    const dateLabel = new Date().toLocaleDateString('en-US',{weekday:'long', day:'numeric', month:'short', year:'numeric'});
+    text += `📋 Kestopur Store Audit — Today's Update (${dateLabel})\n\n`;
+    if(occ.length === 0){
+      text += 'No tasks scheduled for today.\n';
+    } else {
+      occ.forEach(o=>{
+        const key = `${o.date}:${o.taskId}`;
+        const status = getStatus(key);
+        const cap = assignments[o.taskId] || captainRoster[0];
+        const icon = status==='done' ? '✅' : status==='missed' ? '❌' : '⏳';
+        text += `${icon} ${o.taskName} — ${status==='pending' ? 'pending' : status} (${captainNames[cap]||cap})\n`;
+      });
+    }
+  } else {
+    const y = viewDate.getFullYear(), m = viewDate.getMonth();
+    const monthLabel = viewDate.toLocaleString('en-US',{month:'long', year:'numeric'});
+    const occ = occurrencesForMonth(y, m);
+    const done = occ.filter(o => getStatus(`${o.date}:${o.taskId}`) === 'done').length;
+    const rate = occ.length ? Math.round((done/occ.length)*100) : 0;
+    text += `📊 Kestopur Store Audit — Monthly Summary (${monthLabel})\n\n`;
+    text += `Overall completion: ${rate}% (${done}/${occ.length})\n\n`;
+    const byTask = {};
+    occ.forEach(o=>{
+      if(!byTask[o.taskId]) byTask[o.taskId] = { name:o.taskName, total:0, done:0 };
+      byTask[o.taskId].total++;
+      if(getStatus(`${o.date}:${o.taskId}`) === 'done') byTask[o.taskId].done++;
+    });
+    text += 'By task:\n';
+    Object.values(byTask).forEach(t=>{
+      text += `• ${t.name}: ${t.done}/${t.total}\n`;
+    });
+    const flags = computeFlags();
+    if(flags.length){
+      text += `\n⚠ Needs attention:\n`;
+      flags.forEach(f=>{ text += `• ${f.taskName} — ${f.captainName} (${f.streak}x missed in a row)\n`; });
+    }
+  }
+  const out = document.getElementById('digestOutput');
+  if(out) out.value = text;
+}
+
+function copyDigest(){
+  const ta = document.getElementById('digestOutput');
+  const statusEl = document.getElementById('digestStatus');
+  if(!ta || !ta.value){
+    if(statusEl){ statusEl.textContent = 'Generate a digest first.'; setTimeout(()=>{ statusEl.textContent=''; }, 3000); }
+    return;
+  }
+  ta.select();
+  ta.setSelectionRange(0, 999999);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value)
+      .then(()=>{ if(statusEl){ statusEl.textContent = 'Copied to clipboard.'; setTimeout(()=>{ statusEl.textContent=''; }, 3000); } })
+      .catch(()=>{ if(statusEl) statusEl.textContent = 'Text selected — press Ctrl+C / Cmd+C to copy.'; });
+  } else if(statusEl){
+    statusEl.textContent = 'Text selected — press Ctrl+C / Cmd+C to copy.';
+  }
+}
+
+
+function exportCSV(){
+  const y = viewDate.getFullYear(), m = viewDate.getMonth();
+  const occ = occurrencesForMonth(y, m);
+  const rows = [['Date','Task','Assigned Captain','Status','Marked By','Marked At']];
+  occ.forEach(o=>{
+    const key = `${o.date}:${o.taskId}`;
+    const entry = getEntry(key);
+    const cap = assignments[o.taskId] || captainRoster[0];
+    rows.push([
+      o.date, o.taskName, captainNames[cap] || cap,
+      entry ? entry.status : 'pending',
+      entry ? entry.byName : '',
+      entry ? new Date(entry.at).toLocaleString() : ''
+    ]);
+  });
+  const csv = rows.map(r => r.map(f => `"${String(f).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `kestopur-store-audit-${y}-${String(m+1).padStart(2,'0')}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function showExportStatus(msg){
+  const el = document.getElementById('exportStatus');
+  if(!el) return;
+  el.textContent = msg;
+  setTimeout(()=>{ if(el.textContent === msg) el.textContent = ''; }, 5000);
+}
+
+function loadJsPDF(){
+  return new Promise((resolve, reject)=>{
+    if(window.jspdf && window.jspdf.jsPDF){ resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('failed to load'));
+    document.body.appendChild(s);
+    setTimeout(() => reject(new Error('timed out')), 8000);
+  });
+}
+
+function exportPDF(){
+  showExportStatus('Preparing PDF…');
+  loadJsPDF().then(()=>{
+    buildAndSavePDF();
+    showExportStatus('');
+  }).catch(()=>{
+    showExportStatus('PDF library needs internet access and couldn\'t load — use Export CSV instead, or your browser\'s Print → Save as PDF.');
+  });
+}
+
+function buildAndSavePDF(){
+  const y = viewDate.getFullYear(), m = viewDate.getMonth();
+  const occ = occurrencesForMonth(y, m);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const monthLabel = viewDate.toLocaleString('en-US',{month:'long', year:'numeric'});
+  doc.setFontSize(14);
+  doc.text(`Kestopur Store Audit — ${monthLabel}`, 14, 16);
+  doc.setFontSize(8);
+  let yPos = 26;
+  doc.setFont(undefined, 'bold');
+  doc.text('Date', 14, yPos); doc.text('Task', 38, yPos); doc.text('Captain', 110, yPos);
+  doc.text('Status', 145, yPos); doc.text('Marked by', 168, yPos);
+  doc.setFont(undefined, 'normal');
+  yPos += 5;
+  doc.setDrawColor(200); doc.line(14, yPos-3, 196, yPos-3);
+  occ.forEach(o=>{
+    const key = `${o.date}:${o.taskId}`;
+    const entry = getEntry(key);
+    const cap = assignments[o.taskId] || captainRoster[0];
+    if(yPos > 285){ doc.addPage(); yPos = 20; }
+    doc.text(o.date, 14, yPos);
+    doc.text(String(o.taskName).slice(0,38), 38, yPos);
+    doc.text(String(captainNames[cap]||cap).slice(0,20), 110, yPos);
+    doc.text(entry ? entry.status : 'pending', 145, yPos);
+    doc.text(entry ? String(entry.byName).slice(0,14) : '-', 168, yPos);
+    yPos += 6;
+  });
+  doc.save(`kestopur-store-audit-${y}-${String(m+1).padStart(2,'0')}.pdf`);
+}
+
+async function loadData(){
+  try{
+    const log = await window.storage.get('audit-log', true);
+    auditLog = log ? JSON.parse(log.value) : {};
+  }catch(e){ auditLog = {}; }
+  try{
+    const tasks = await window.storage.get('task-list', true);
+    taskList = tasks ? JSON.parse(tasks.value) : [...DEFAULT_TASKS];
+  }catch(e){ taskList = [...DEFAULT_TASKS]; }
+  try{
+    const roster = await window.storage.get('captain-roster', true);
+    captainRoster = roster ? JSON.parse(roster.value) : [...DEFAULT_ROSTER];
+  }catch(e){ captainRoster = [...DEFAULT_ROSTER]; }
+  try{
+    const asg = await window.storage.get('captain-assignments', true);
+    assignments = asg ? JSON.parse(asg.value) : { ...DEFAULT_CAPTAINS };
+  }catch(e){ assignments = { ...DEFAULT_CAPTAINS }; }
+  try{
+    const names = await window.storage.get('captain-names', true);
+    captainNames = names ? JSON.parse(names.value) : defaultCaptainNames(captainRoster);
+  }catch(e){ captainNames = defaultCaptainNames(captainRoster); }
+  try{
+    const cl = await window.storage.get('change-log', true);
+    changeLog = cl ? JSON.parse(cl.value) : [];
+  }catch(e){ changeLog = []; }
+  try{
+    const marker = await window.storage.get('current-marker', false);
+    currentMarker = marker ? JSON.parse(marker.value) : null;
+  }catch(e){ currentMarker = null; }
+  if(!currentMarker || !captainRoster.includes(currentMarker)){
+    currentMarker = captainRoster[0] || null;
+  }
+  try{
+    const targets = await window.storage.get('captain-targets', true);
+    captainTargets = targets ? JSON.parse(targets.value) : {};
+  }catch(e){ captainTargets = {}; }
+  try{
+    const pin = await window.storage.get('reset-pin', true);
+    resetPin = pin ? JSON.parse(pin.value) : '1234';
+  }catch(e){ resetPin = '1234'; }
+}
+
+async function saveAuditLog(){
+  try{ await window.storage.set('audit-log', JSON.stringify(auditLog), true); }
+  catch(e){ console.error('save audit-log failed', e); }
+}
+async function saveAssignments(){
+  try{ await window.storage.set('captain-assignments', JSON.stringify(assignments), true); }
+  catch(e){ console.error('save assignments failed', e); }
+}
+async function saveRoster(){
+  try{ await window.storage.set('captain-roster', JSON.stringify(captainRoster), true); }
+  catch(e){ console.error('save roster failed', e); }
+}
+async function saveTaskList(){
+  try{ await window.storage.set('task-list', JSON.stringify(taskList), true); }
+  catch(e){ console.error('save task list failed', e); }
+}
+async function saveChangeLog(){
+  try{ await window.storage.set('change-log', JSON.stringify(changeLog), true); }
+  catch(e){ console.error('save change log failed', e); }
+}
+async function saveCurrentMarker(){
+  try{ await window.storage.set('current-marker', JSON.stringify(currentMarker), false); }
+  catch(e){ console.error('save current marker failed', e); }
+}
+async function saveNames(){
+  try{ await window.storage.set('captain-names', JSON.stringify(captainNames), true); }
+  catch(e){ console.error('save names failed', e); }
+}
+async function saveCaptainTargets(){
+  try{ await window.storage.set('captain-targets', JSON.stringify(captainTargets), true); }
+  catch(e){ console.error('save captain targets failed', e); }
+}
+async function saveResetPin(){
+  try{ await window.storage.set('reset-pin', JSON.stringify(resetPin), true); }
+  catch(e){ console.error('save reset pin failed', e); }
+}
+async function saveSopPhoto(taskId, dataUrl){
+  try{ await window.storage.set('sop-photo:' + taskId, dataUrl, true); }
+  catch(e){ console.error('save sop photo failed', e); }
+}
+async function deleteSopPhotoStorage(taskId){
+  try{ await window.storage.delete('sop-photo:' + taskId, true); }
+  catch(e){ /* nothing to delete, ignore */ }
+}
+async function loadSopPhotos(){
+  sopPhotos = {};
+  try{
+    const list = await window.storage.list('sop-photo:', true);
+    const keys = (list && list.keys) ? list.keys : [];
+    for(const k of keys){
+      try{
+        const res = await window.storage.get(k, true);
+        if(res && res.value){
+          const taskId = k.startsWith('sop-photo:') ? k.slice('sop-photo:'.length) : k;
+          sopPhotos[taskId] = res.value;
+        }
+      }catch(e){ /* skip this one */ }
+    }
+  }catch(e){ sopPhotos = {}; }
+}
+
+function todayStr(){
+  const t = new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+
+function getStatus(key){
+  const entry = auditLog[key];
+  return entry ? entry.status : 'pending';
+}
+function getEntry(key){ return auditLog[key] || null; }
+
+function render(){
+  const y = viewDate.getFullYear(), m = viewDate.getMonth();
+  document.getElementById('monthLabel').textContent =
+    viewDate.toLocaleString('en-US',{month:'long', year:'numeric'});
+
+  // Marker select (who is currently marking tickets)
+  const markerSel = document.getElementById('markerSelect');
+  if(markerSel){
+    markerSel.innerHTML = captainRoster.map(c=>
+      `<option value="${c}" ${currentMarker===c?'selected':''}>${captainNames[c]||('Captain '+c)}</option>`
+    ).join('');
+  }
+
+  // Flags: captains/tasks with repeated consecutive misses
+  const flags = computeFlags();
+  document.getElementById('flagsList').innerHTML = flags.length ? flags.map(f=>`
+    <div class="flag-card">
+      <div class="flag-info">
+        <div class="fname">${f.taskName}</div>
+        <div class="fmeta">${f.captainName} · ${f.streak} misses in a row</div>
+      </div>
+      <div class="fstreak">⚠ ${f.streak}x missed</div>
+    </div>
+  `).join('') : `<div class="flags-empty">No repeated misses right now — nice.</div>`;
+
+  // Trend: overall completion rate over last 6 months
+  const monthlyTrend = computeMonthlyTrend(6);
+  document.getElementById('trendOverall').innerHTML = monthlyTrend.map(mt=>{
+    const pct = mt.rate === null ? 0 : mt.rate;
+    const color = mt.rate === null ? 'var(--ink-faint)' : pct>=80 ? 'var(--green)' : pct>=50 ? 'var(--amber)' : 'var(--rust)';
+    return `
+      <div class="trend-row">
+        <span class="trend-lbl">${mt.label}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${color};"></div></div>
+        <span class="trend-pct">${mt.rate===null ? '—' : pct+'%'}</span>
+      </div>`;
+  }).join('');
+
+  // Trend: task-wise average over last 6 months
+  const taskTrend = computeTaskTrend(6);
+  document.getElementById('trendByTask').innerHTML = taskTrend.map(tt=>{
+    const pct = tt.total ? Math.round((tt.done/tt.total)*100) : null;
+    const color = pct===null ? 'var(--ink-faint)' : pct>=80 ? 'var(--green)' : pct>=50 ? 'var(--amber)' : 'var(--rust)';
+    return `
+      <div class="trend-row">
+        <span class="trend-lbl">${tt.name}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct||0}%; background:${color};"></div></div>
+        <span class="trend-pct">${pct===null ? '—' : pct+'%'}</span>
+      </div>`;
+  }).join('');
+
+  const occ = occurrencesForMonth(y, m);
+  const today = todayStr();
+  const priorityOf = (taskId) => {
+    const t = taskList.find(t => t.id === taskId);
+    return (t && t.priority) || 1;
+  };
+
+  // effective status w/ auto-overdue
+  const withStatus = occ.map(o=>{
+    const key = `${o.date}:${o.taskId}`;
+    let status = getStatus(key);
+    let display = status;
+    if(status === 'pending' && o.date < today) display = 'overdue';
+    return { ...o, key, status, display, weight: priorityOf(o.taskId) };
+  });
+
+  // Summary (weighted completion rate — higher-priority tasks count more)
+  const total = withStatus.length;
+  const done = withStatus.filter(o=>o.status==='done').length;
+  const missed = withStatus.filter(o=>o.status==='missed').length;
+  const overdue = withStatus.filter(o=>o.display==='overdue').length;
+  const pending = withStatus.filter(o=>o.display==='pending').length;
+  const weightTotal = withStatus.reduce((s,o)=>s+o.weight, 0);
+  const weightDone = withStatus.filter(o=>o.status==='done').reduce((s,o)=>s+o.weight, 0);
+  const rate = weightTotal ? Math.round((weightDone/weightTotal)*100) : 0;
+
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="card accent-green"><div class="num">${rate}%</div><div class="lbl">Completion rate (weighted)</div></div>
+    <div class="card accent-plain"><div class="num">${done}/${total}</div><div class="lbl">Tasks done</div></div>
+    <div class="card accent-rust"><div class="num">${missed+overdue}</div><div class="lbl">Missed / overdue</div></div>
+    <div class="card accent-amber"><div class="num">${pending}</div><div class="lbl">Not yet due</div></div>
+  `;
+
+  // Captain performance (weighted by task priority; target = SLA)
+  const perf = {};
+  captainRoster.forEach(c => perf[c] = {assigned:0,done:0,missed:0,wAssigned:0,wDone:0});
+  withStatus.forEach(o=>{
+    const cap = assignments[o.taskId] || captainRoster[0];
+    if(!perf[cap]) perf[cap] = {assigned:0,done:0,missed:0,wAssigned:0,wDone:0};
+    perf[cap].assigned++;
+    perf[cap].wAssigned += o.weight;
+    if(o.status==='done'){ perf[cap].done++; perf[cap].wDone += o.weight; }
+    if(o.status==='missed' || o.display==='overdue') perf[cap].missed++;
+  });
+  document.getElementById('captainGrid').innerHTML = captainRoster.map(cap=>{
+    const p = perf[cap];
+    const hasWork = p.wAssigned > 0;
+    const pct = hasWork ? Math.round((p.wDone/p.wAssigned)*100) : null;
+    const target = captainTargets[cap] !== undefined ? captainTargets[cap] : DEFAULT_SLA_TARGET;
+    const color = !hasWork ? 'var(--ink-faint)' : pct>=target ? 'var(--green)' : pct>=target-15 ? 'var(--amber)' : 'var(--rust)';
+    return `
+      <div class="captain-card">
+        <div class="name-row">
+          <input class="captain-rename" value="${captainNames[cap]||('Captain '+cap)}"
+            onchange="renameCaptain('${cap}', this.value)">
+          <button class="remove-captain-btn ${pendingDeleteKey==='captain:'+cap ? 'confirming' : ''}"
+            title="${captainRoster.length<=1 ? 'At least one captain is required' : 'Remove captain'}"
+            ${captainRoster.length<=1 ? 'disabled' : ''}
+            onclick="handleRemoveClick('${cap}')">${pendingDeleteKey==='captain:'+cap ? 'Confirm?' : '✕'}</button>
+        </div>
+        <div class="name-row"><span class="pct" style="color:${color}">${hasWork ? pct+'%' : '—'}</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${hasWork?pct:0}%; background:${color};"></div></div>
+        <div class="meta">${p.done} done · ${p.missed} missed · ${p.assigned} assigned</div>
+        <div class="meta">target <input class="sla-input" type="number" min="0" max="100" value="${target}"
+          onchange="setCaptainTarget('${cap}', this.value)">%</div>
+      </div>`;
+  }).join('') + `
+      <button class="add-captain-card" onclick="addCaptain()">+ Add captain</button>
+  `;
+
+  // Task breakdown (rename, recurrence dates, priority, captain, delete)
+  const byTask = {};
+  withStatus.forEach(o=>{
+    if(!byTask[o.taskId]) byTask[o.taskId] = { name:o.taskName, total:0, done:0 };
+    byTask[o.taskId].total++;
+    if(o.status==='done') byTask[o.taskId].done++;
+  });
+  document.getElementById('taskBreakdown').innerHTML = taskList.map(t=>{
+    const b = byTask[t.id] || { total:0, done:0 };
+    const pct = b.total ? Math.round((b.done/b.total)*100) : 0;
+    const color = pct>=80 ? 'var(--green)' : pct>=50 ? 'var(--amber)' : 'var(--rust)';
+    const cap = assignments[t.id] || captainRoster[0];
+    const delKey = 'task:' + t.id;
+    const daysStr = t.days.map(d => d==='end' ? 'end' : d).join(',');
+    const priority = t.priority || 1;
+    return `
+      <div class="task-row">
+        <input class="task-rename" value="${t.name}" onchange="renameTask('${t.id}', this.value)">
+        <input class="days-input" value="${daysStr}" title="Recurrence days (e.g. 5,15,25 or end)"
+          onchange="updateTaskDays('${t.id}', this.value)">
+        <select class="prio-select" onchange="updateTaskPriority('${t.id}', this.value)" title="Priority weight">
+          <option value="1" ${priority===1?'selected':''}>Normal ×1</option>
+          <option value="2" ${priority===2?'selected':''}>Important ×2</option>
+          <option value="3" ${priority===3?'selected':''}>Critical ×3</option>
+        </select>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${color};"></div></div>
+        <div class="tpct">${pct}%</div>
+        <select onchange="reassign('${t.id}', this.value)">
+          ${captainRoster.map(c=>`<option value="${c}" ${cap===c?'selected':''}>${captainNames[c]||('Captain '+c)}</option>`).join('')}
+        </select>
+        <button class="remove-captain-btn ${pendingDeleteKey===delKey ? 'confirming' : ''}"
+          title="${taskList.length<=1 ? 'At least one task is required' : 'Delete task'}"
+          ${taskList.length<=1 ? 'disabled' : ''}
+          onclick="handleRemoveTaskClick('${t.id}')">${pendingDeleteKey===delKey ? 'Confirm?' : '✕'}</button>
+      </div>
+      ${sopOpen.has(t.id) ? `
+      <div class="sop-edit">
+        <button class="sop-collapse-btn" onclick="collapseSop('${t.id}')">▾ Collapse SOP</button>
+        <textarea placeholder="Step-by-step instructions for how to correctly complete this task..."
+          onchange="updateTaskSOP('${t.id}', this.value)">${escapeHtml(t.sop || '')}</textarea>
+        <div class="sop-photo-row">
+          <input type="file" accept="image/*" onchange="handleSopPhotoUpload('${t.id}', this)">
+          ${sopPhotos[t.id] ? `<div class="sop-photo-preview"><img src="${sopPhotos[t.id]}" alt="SOP guidance photo"><button onclick="removeSopPhoto('${t.id}')">Remove photo</button></div>` : ''}
+        </div>
+      </div>` : `
+      <button class="sop-locked-btn" onclick="requestSopEdit('${t.id}')">🔒 ${t.sop || sopPhotos[t.id] ? 'Edit SOP' : 'Add SOP / instructions'}</button>`}`;
+  }).join('') + `
+    <div class="add-task-form">
+      <input id="newTaskName" type="text" placeholder="New task name">
+      <input id="newTaskDays" type="text" placeholder="Days e.g. 5,15,25 or end">
+      <button onclick="addTask()">+ Add task</button>
+    </div>
+    <p class="add-task-hint">Days are numbers 1-31, comma separated. Use "end" for the last day of the month. Click any date field or priority above to edit an existing task.</p>
+  `;
+
+  // Ticket rail grouped by date (list view)
+  const groups = {};
+  withStatus.forEach(o=>{
+    if(!groups[o.date]) groups[o.date] = [];
+    groups[o.date].push(o);
+  });
+  const dates = Object.keys(groups).sort();
+  if(ticketViewMode === 'list'){
+    document.getElementById('ticketRail').innerHTML = dates.length ? dates.map(d=>{
+      const isToday = d === today;
+      const dObj = new Date(d+'T00:00:00');
+      const label = dObj.toLocaleString('en-US',{weekday:'short', day:'numeric', month:'short'});
+      return `
+        <div class="ticket-group">
+          <div class="ticket-date">${label} ${isToday ? '<span class="tag">Today</span>' : ''}</div>
+          ${groups[d].map(o => buildTicketHtml(o)).join('')}
+        </div>`;
+    }).join('') : `<div class="empty">No occurrences this month.</div>`;
+  } else {
+    // Calendar view
+    const last = lastDayOfMonth(y, m);
+    const firstWeekday = new Date(y, m, 1).getDay();
+    const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let cells = dow.map(d => `<div class="cal-dow">${d}</div>`).join('');
+    for(let i=0; i<firstWeekday; i++) cells += `<div class="cal-cell cal-empty"></div>`;
+    for(let day=1; day<=last; day++){
+      const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const items = groups[dateStr] || [];
+      const dots = items.map(o => `<span class="cal-dot dot-${o.display}"></span>`).join('');
+      const isToday = dateStr === today;
+      const isSelected = dateStr === selectedCalendarDate;
+      cells += `
+        <div class="cal-cell ${isToday?'cal-today':''} ${isSelected?'cal-selected':''}" onclick="selectCalendarDate('${dateStr}')">
+          <span class="cal-daynum">${day}</span>
+          <div class="cal-dots">${dots}</div>
+        </div>`;
+    }
+    document.getElementById('calendarGrid').innerHTML = cells;
+
+    const detailEl = document.getElementById('calendarDayDetail');
+    if(selectedCalendarDate && groups[selectedCalendarDate]){
+      const dObj = new Date(selectedCalendarDate+'T00:00:00');
+      const label = dObj.toLocaleString('en-US',{weekday:'long', day:'numeric', month:'short'});
+      detailEl.innerHTML = `
+        <div class="cal-day-detail-hdr">${label}</div>
+        ${groups[selectedCalendarDate].map(o => buildTicketHtml(o)).join('')}`;
+    } else if(selectedCalendarDate){
+      detailEl.innerHTML = `<div class="empty">Nothing scheduled that day.</div>`;
+    } else {
+      detailEl.innerHTML = '';
+    }
+  }
+
+  // Today's checklist tab
+  const todayHdrEl = document.getElementById('todayDateHdr');
+  if(todayHdrEl){
+    todayHdrEl.textContent = new Date().toLocaleDateString('en-US',{weekday:'long', day:'numeric', month:'long'});
+  }
+  const realY = new Date().getFullYear(), realM = new Date().getMonth();
+  const todayOcc = occurrencesForMonth(realY, realM)
+    .filter(o => o.date === today)
+    .map(o=>{
+      const key = `${o.date}:${o.taskId}`;
+      const status = getStatus(key);
+      return { ...o, key, status, display: status };
+    });
+  document.getElementById('todayChecklist').innerHTML = todayOcc.length ? todayOcc.map(o=>{
+    const cap = assignments[o.taskId] || captainRoster[0];
+    const task = taskList.find(t => t.id === o.taskId);
+    const sop = task ? task.sop : '';
+    return `
+      <div class="today-item status-${o.display}">
+        <div class="tiname">${o.taskName}</div>
+        <div class="ticap">${captainNames[cap]||('Captain '+cap)}</div>
+        ${renderSopViewBlock(o.taskId, sop)}
+        <div class="ticket-actions">
+          <button class="status-btn ${o.status==='pending'?'active-pending':''}" onclick="setStatus('${o.key}','pending')">Pending</button>
+          <button class="status-btn ${o.status==='done'?'active-done':''}" onclick="setStatus('${o.key}','done')">Done</button>
+          <button class="status-btn ${o.status==='missed'?'active-missed':''}" onclick="setStatus('${o.key}','missed')">Missed</button>
+        </div>
+      </div>`;
+  }).join('') : `<div class="today-empty">Nothing scheduled today. 🎉</div>`;
+
+  // Activity log
+  const logHtml = changeLog.slice(0, 60).map(e => `
+    <div class="log-row">
+      <span class="log-when">${formatWhen(e.at)}</span>
+      <span class="log-who">${e.byName}</span>
+      <span class="log-what">marked <strong>${e.taskName}</strong> (${e.date}) as</span>
+      <span class="log-status log-${e.status}">${e.status}</span>
+    </div>
+  `).join('');
+  document.getElementById('activityLog').innerHTML = changeLog.length
+    ? `<div class="activity-scroll">${logHtml}</div>`
+    : `<div class="log-empty">No activity yet — marking a ticket will show up here with who and when.</div>`;
+}
+
+function setStatus(key, status){
+  if(status === 'pending'){
+    delete auditLog[key];
+  } else {
+    const [date, taskId] = [key.slice(0,10), key.slice(11)];
+    const task = taskList.find(t => t.id === taskId);
+    const byId = currentMarker || captainRoster[0] || null;
+    const byName = (byId && captainNames[byId]) || 'Unassigned';
+    const at = Date.now();
+    auditLog[key] = { status, byId, byName, at };
+    changeLog.unshift({ key, taskId, taskName: task ? task.name : taskId, date, status, byId, byName, at });
+    if(changeLog.length > 300) changeLog.length = 300;
+    saveChangeLog();
+  }
+  saveAuditLog();
+  render();
+}
+
+function setCurrentMarker(id){
+  currentMarker = id;
+  saveCurrentMarker();
+  render();
+}
+
+function formatWhen(ts){
+  const d = new Date(ts);
+  const today = todayStr();
+  const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const time = d.toLocaleTimeString('en-US',{hour:'numeric', minute:'2-digit'});
+  if(dStr === today) return `today ${time}`;
+  return d.toLocaleDateString('en-US',{day:'numeric', month:'short'}) + ' ' + time;
+}
+
+function reassign(taskId, captain){
+  assignments[taskId] = captain;
+  saveAssignments();
+  render();
+}
+
+function renameCaptain(cap, newName){
+  captainNames[cap] = newName || ('Captain ' + cap);
+  saveNames();
+  render();
+}
+
+function renameTask(id, newName){
+  const t = taskList.find(t => t.id === id);
+  const trimmed = (newName || '').trim();
+  if(t) t.name = trimmed || t.name;
+  saveTaskList();
+  render();
+}
+
+function updateTaskDays(id, raw){
+  const t = taskList.find(t => t.id === id);
+  if(!t) return;
+  const days = raw.split(',')
+    .map(s => s.trim().toLowerCase())
+    .filter(Boolean)
+    .map(s => s === 'end' ? 'end' : parseInt(s, 10))
+    .filter(d => d === 'end' || (Number.isInteger(d) && d >= 1 && d <= 31));
+  if(days.length === 0){ render(); return; } // invalid — revert to previous value on re-render
+  t.days = days;
+  saveTaskList();
+  render();
+}
+
+function updateTaskPriority(id, val){
+  const t = taskList.find(t => t.id === id);
+  if(!t) return;
+  t.priority = parseInt(val, 10) || 1;
+  saveTaskList();
+  render();
+}
+
+function updateTaskSOP(id, val){
+  const t = taskList.find(t => t.id === id);
+  if(!t) return;
+  t.sop = (val || '').trim();
+  saveTaskList();
+  render();
+}
+
+function requestSopEdit(id){
+  requireSopPin(()=>{ sopOpen.add(id); render(); });
+}
+
+function collapseSop(id){
+  sopOpen.delete(id);
+  render();
+}
+
+function compressToDataUrl(img, maxW, quality){
+  const scale = Math.min(1, maxW / img.width);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(img.width * scale);
+  canvas.height = Math.round(img.height * scale);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', quality);
+}
+
+function handleSopPhotoUpload(taskId, inputEl){
+  const file = inputEl.files && inputEl.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      // Google Sheets cells cap around 50,000 characters — shrink until it fits with margin.
+      let maxW = 600, quality = 0.6, attempts = 0;
+      let dataUrl = compressToDataUrl(img, maxW, quality);
+      while(dataUrl.length > 40000 && attempts < 6){
+        maxW = Math.round(maxW * 0.75);
+        quality = Math.max(0.3, quality - 0.1);
+        dataUrl = compressToDataUrl(img, maxW, quality);
+        attempts++;
+      }
+      if(dataUrl.length > 40000){
+        showExportStatus('That photo is too large/detailed to store even after compression — try a simpler or smaller photo.');
+        return;
+      }
+      sopPhotos[taskId] = dataUrl;
+      saveSopPhoto(taskId, dataUrl);
+      render();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeSopPhoto(taskId){
+  delete sopPhotos[taskId];
+  deleteSopPhotoStorage(taskId);
+  render();
+}
+
+function setCaptainTarget(cap, val){
+  let n = parseInt(val, 10);
+  if(isNaN(n)) n = DEFAULT_SLA_TARGET;
+  n = Math.max(0, Math.min(100, n));
+  captainTargets[cap] = n;
+  saveCaptainTargets();
+  render();
+}
+
+function handleRemoveTaskClick(id){
+  if(taskList.length <= 1) return;
+  armOrConfirm('task:' + id, () => removeTask(id));
+}
+
+function removeTask(id){
+  taskList = taskList.filter(t => t.id !== id);
+  delete assignments[id];
+  Object.keys(auditLog).forEach(key => {
+    if(key.endsWith(':' + id)) delete auditLog[key];
+  });
+  sopOpen.delete(id);
+  if(sopPhotos[id]){
+    delete sopPhotos[id];
+    deleteSopPhotoStorage(id);
+  }
+  saveTaskList();
+  saveAssignments();
+  saveAuditLog();
+  render();
+}
+
+function addTask(){
+  const nameEl = document.getElementById('newTaskName');
+  const daysEl = document.getElementById('newTaskDays');
+  if(!nameEl || !daysEl) return;
+  const name = nameEl.value.trim();
+  const daysRaw = daysEl.value.trim();
+  if(!name || !daysRaw){
+    if(!name){ nameEl.style.borderColor = 'var(--rust)'; setTimeout(()=>{ nameEl.style.borderColor = 'var(--rail)'; }, 1500); }
+    if(!daysRaw){ daysEl.style.borderColor = 'var(--rust)'; setTimeout(()=>{ daysEl.style.borderColor = 'var(--rail)'; }, 1500); }
+    return;
+  }
+  const days = daysRaw.split(',')
+    .map(s => s.trim().toLowerCase())
+    .filter(Boolean)
+    .map(s => s === 'end' ? 'end' : parseInt(s, 10))
+    .filter(d => d === 'end' || (Number.isInteger(d) && d >= 1 && d <= 31));
+  if(days.length === 0){
+    daysEl.style.borderColor = 'var(--rust)';
+    setTimeout(() => { daysEl.style.borderColor = 'var(--rail)'; }, 1500);
+    return;
+  }
+  const id = uniqueTaskId(slugify(name), taskList);
+  taskList.push({ id, name, type:'fixed', days, priority:1, sop:'' });
+  assignments[id] = captainRoster[0] || 'A';
+  saveTaskList();
+  saveAssignments();
+  nameEl.value = '';
+  daysEl.value = '';
+  render();
+}
+
+function addCaptain(){
+  const id = nextCaptainId(captainRoster);
+  captainRoster.push(id);
+  captainNames[id] = 'Captain ' + id;
+  saveRoster();
+  saveNames();
+  render();
+}
+
+function handleRemoveClick(cap){
+  if(captainRoster.length <= 1) return; // button is disabled in this case anyway
+  armOrConfirm('captain:' + cap, () => removeCaptain(cap));
+}
+
+function removeCaptain(cap){
+  captainRoster = captainRoster.filter(c => c !== cap);
+  delete captainNames[cap];
+  delete captainTargets[cap];
+  const fallback = captainRoster[0];
+  Object.keys(assignments).forEach(taskId=>{
+    if(assignments[taskId] === cap) assignments[taskId] = fallback;
+  });
+  saveRoster();
+  saveNames();
+  saveAssignments();
+  saveCaptainTargets();
+  render();
+}
+
+function shiftMonth(delta){
+  viewDate.setMonth(viewDate.getMonth() + delta);
+  render();
+}
+
+function startResetFlow(){
+  document.getElementById('resetBtn').style.display = 'none';
+  document.getElementById('resetPinBox').style.display = 'flex';
+  document.getElementById('resetPinError').style.display = 'none';
+  const inp = document.getElementById('resetPinInput');
+  if(inp){ inp.value = ''; inp.focus(); }
+}
+
+function cancelResetFlow(){
+  document.getElementById('resetBtn').style.display = '';
+  document.getElementById('resetPinBox').style.display = 'none';
+  document.getElementById('resetPinError').style.display = 'none';
+}
+
+function confirmResetWithPin(){
+  const inp = document.getElementById('resetPinInput');
+  const val = inp ? inp.value : '';
+  if(val === resetPin){
+    cancelResetFlow();
+    resetAllData();
+  } else {
+    document.getElementById('resetPinError').style.display = 'block';
+    if(inp){ inp.value = ''; inp.focus(); }
+  }
+}
+
+function toggleChangePin(){
+  const box = document.getElementById('changePinBox');
+  const showing = box.style.display !== 'none';
+  box.style.display = showing ? 'none' : 'flex';
+  document.getElementById('pinChangeStatus').textContent = '';
+  if(!showing){
+    document.getElementById('oldPinInput').value = '';
+    document.getElementById('newPinInput').value = '';
+  }
+}
+
+function saveNewPin(){
+  const oldVal = document.getElementById('oldPinInput').value;
+  const newVal = document.getElementById('newPinInput').value;
+  const statusEl = document.getElementById('pinChangeStatus');
+  if(oldVal !== resetPin){
+    statusEl.textContent = 'Current PIN is incorrect.';
+    return;
+  }
+  if(!newVal || newVal.length < 4){
+    statusEl.textContent = 'New PIN must be at least 4 characters.';
+    return;
+  }
+  resetPin = newVal;
+  saveResetPin();
+  statusEl.textContent = 'PIN updated.';
+  setTimeout(()=>{
+    statusEl.textContent = '';
+    document.getElementById('changePinBox').style.display = 'none';
+  }, 1500);
+}
+
+async function resetAllData(){
+  auditLog = {};
+  taskList = [...DEFAULT_TASKS];
+  captainRoster = [...DEFAULT_ROSTER];
+  assignments = { ...DEFAULT_CAPTAINS };
+  captainNames = defaultCaptainNames(captainRoster);
+  changeLog = [];
+  currentMarker = captainRoster[0] || null;
+  captainTargets = {};
+  await Promise.all([saveAuditLog(), saveTaskList(), saveRoster(), saveAssignments(), saveNames(), saveChangeLog(), saveCurrentMarker(), saveCaptainTargets()]);
+  const btn = document.getElementById('resetBtn');
+  if(btn) btn.textContent = 'Reset all audit data';
+  render();
+}
+
+(async function init(){
+  await loadData();
+  await loadSopPhotos();
+  render();
+})();
+</script>
+</body>
+</html>
