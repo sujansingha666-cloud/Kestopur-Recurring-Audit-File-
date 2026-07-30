@@ -566,10 +566,9 @@ const GITHUB_TOKEN = 'github_pat_11CKF7AGY0pG2UlqoWMUuB_0C9CBZ5WET0RXhG2s6Pbm1JQ
 const GIST_FILENAME = 'store.json';
 const GIST_API = 'https://api.github.com/gists/' + GIST_ID;
 
-let _remoteStore = null; // whole key-value store, cached after first load to save API requests
+let _remoteStore = null; // cached for reads only — writes always re-fetch fresh first
 
-async function _loadRemoteStore(){
-  if(_remoteStore) return _remoteStore;
+async function _fetchFreshStore(){
   try{
     const res = await fetch(GIST_API, {
       headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github+json' }
@@ -578,9 +577,14 @@ async function _loadRemoteStore(){
     const content = (data.files && data.files[GIST_FILENAME]) ? data.files[GIST_FILENAME].content : '{}';
     _remoteStore = JSON.parse(content || '{}');
   }catch(e){
-    _remoteStore = {};
+    if(!_remoteStore) _remoteStore = {};
   }
   return _remoteStore;
+}
+
+async function _loadRemoteStore(){
+  if(_remoteStore) return _remoteStore;
+  return _fetchFreshStore();
 }
 
 async function _saveRemoteStore(){
@@ -604,13 +608,15 @@ window.storage = {
     return { key, value: store[key], shared: true };
   },
   async set(key, value){
-    const store = await _loadRemoteStore();
+    // Re-fetch the latest data right before writing, so we don't clobber a change
+    // someone else (another captain's tab) saved in the meantime.
+    const store = await _fetchFreshStore();
     store[key] = value;
     await _saveRemoteStore();
     return { key, value, shared: true };
   },
   async delete(key){
-    const store = await _loadRemoteStore();
+    const store = await _fetchFreshStore();
     delete store[key];
     await _saveRemoteStore();
     return { key, deleted: true, shared: true };
