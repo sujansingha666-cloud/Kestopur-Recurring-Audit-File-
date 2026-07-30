@@ -569,36 +569,58 @@ const GIST_API = 'https://api.github.com/gists/' + GIST_ID;
 let _remoteStore = null; // cached for reads only — writes always re-fetch fresh first
 
 async function _fetchFreshStore(){
-  try{
-    const res = await fetch(GIST_API, {
-      headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github+json' }
-    });
-    const data = await res.json();
-    const content = (data.files && data.files[GIST_FILENAME]) ? data.files[GIST_FILENAME].content : '{}';
-    _remoteStore = JSON.parse(content || '{}');
-  }catch(e){
-    if(!_remoteStore) _remoteStore = {};
+  const res = await fetch(GIST_API, {
+    headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Accept': 'application/vnd.github+json' }
+  });
+  if(!res.ok){
+    throw new Error('GitHub API error ' + res.status + ' — check that the token in this file is still valid.');
   }
+  const data = await res.json();
+  if(!data.files || !data.files[GIST_FILENAME]){
+    throw new Error('Gist file "' + GIST_FILENAME + '" not found in the API response.');
+  }
+  const content = data.files[GIST_FILENAME].content;
+  _remoteStore = JSON.parse(content || '{}');
   return _remoteStore;
 }
 
 async function _loadRemoteStore(){
   if(_remoteStore) return _remoteStore;
-  return _fetchFreshStore();
+  try{
+    return await _fetchFreshStore();
+  }catch(e){
+    console.error('Initial load failed:', e);
+    _showConnectionError(e.message);
+    _remoteStore = {}; // only used to let the page render — nothing gets saved over real data
+    return _remoteStore;
+  }
 }
 
 async function _saveRemoteStore(){
-  try{
-    await fetch(GIST_API, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': 'token ' + GITHUB_TOKEN,
-        'Accept': 'application/vnd.github+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(_remoteStore) } } })
-    });
-  }catch(e){ console.error('gist save failed', e); }
+  const res = await fetch(GIST_API, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': 'token ' + GITHUB_TOKEN,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(_remoteStore) } } })
+  });
+  if(!res.ok){
+    throw new Error('GitHub API error ' + res.status + ' while saving — your change was NOT saved.');
+  }
+}
+
+function _showConnectionError(msg){
+  let banner = document.getElementById('_connError');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = '_connError';
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#C1502E;color:#fff;' +
+      'padding:10px 16px;font-family:sans-serif;font-size:13px;z-index:9999;text-align:center;';
+    document.body.prepend(banner);
+  }
+  banner.textContent = '⚠ Can\'t connect to storage right now — changes will NOT be saved. (' + msg + ')';
 }
 
 window.storage = {
@@ -610,16 +632,28 @@ window.storage = {
   async set(key, value){
     // Re-fetch the latest data right before writing, so we don't clobber a change
     // someone else (another captain's tab) saved in the meantime.
-    const store = await _fetchFreshStore();
-    store[key] = value;
-    await _saveRemoteStore();
-    return { key, value, shared: true };
+    try{
+      const store = await _fetchFreshStore();
+      store[key] = value;
+      await _saveRemoteStore();
+      return { key, value, shared: true };
+    }catch(e){
+      console.error('set failed — change was NOT saved to avoid data loss:', e);
+      _showConnectionError(e.message);
+      return { key, value, shared: true }; // let the UI still reflect the change locally for this session
+    }
   },
   async delete(key){
-    const store = await _fetchFreshStore();
-    delete store[key];
-    await _saveRemoteStore();
-    return { key, deleted: true, shared: true };
+    try{
+      const store = await _fetchFreshStore();
+      delete store[key];
+      await _saveRemoteStore();
+      return { key, deleted: true, shared: true };
+    }catch(e){
+      console.error('delete failed — change was NOT saved:', e);
+      _showConnectionError(e.message);
+      return { key, deleted: true, shared: true };
+    }
   },
   async list(prefix){
     const store = await _loadRemoteStore();
